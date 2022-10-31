@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing
+
+name: PFvpn Sign
+
+on:
+  push:
+    branches: [ "re" ]
+  # pull_request:
+  #   branches: [ "re" ]
+  schedule:
+    - cron: 30 18 * * *
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    environment: PFsign
+    steps:
+    - uses: actions/checkout@v3
+    - uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Asia/Shanghai"
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Sign
+      run: |
+        python main.py
+      env:
+        USERS: ${{ secrets.USERS }}
+        PASSWORD: ${{ secrets.PASSWORD }}
+        SCKEY: ${{ secrets.SCKEY }}
